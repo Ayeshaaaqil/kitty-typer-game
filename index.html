@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=none">
-    <title>Super Cat Typing Adventure - Perfect Mobile Fit!</title>
+    <title>Super Cat Typing Adventure - Final Fixed!</title>
     <style>
         :root {
             --bg-start: #ff9a9e;
@@ -17,6 +17,10 @@
             --key-text: #2c3e50;
         }
 
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
             padding: 0;
@@ -28,7 +32,6 @@
             align-items: center;
             height: 100vh;
             width: 100vw;
-            box-sizing: border-box;
             touch-action: manipulation;
         }
 
@@ -36,8 +39,7 @@
             position: relative;
             width: 95%;
             max-width: 500px;
-            /* Flex grow allows it to take up all available top space dynamically */
-            flex-grow: 1; 
+            flex: 1; /* Automatically takes all available height above the keyboard */
             margin-top: 5px;
             margin-bottom: 5px;
             background: var(--box-bg);
@@ -51,7 +53,7 @@
             display: flex;
             justify-content: space-around;
             background: var(--ui-bg);
-            padding: 6px;
+            padding: 8px;
             font-size: 15px;
             font-weight: bold;
             border-bottom: 3px solid #4a4a4a;
@@ -59,7 +61,7 @@
 
         #word-area {
             position: relative;
-            height: calc(100% - 35px);
+            height: calc(100% - 40px);
             width: 100%;
         }
 
@@ -96,26 +98,25 @@
             z-index: 5;
         }
 
-        /* NEW COMPACT KEYBOARD HEIGHT */
+        /* FIXED & RESPONSIVE KEYBOARD CONTAINER */
         #keyboard-container {
             width: 100%;
             max-width: 500px;
-            height: 160px; /* Fixed height ensures it never gets cut off */
+            height: 145px; /* Shrunk slightly to leave breathing room for system bar */
             display: flex;
             flex-direction: column;
             gap: 4px;
             padding: 6px;
-            box-sizing: border-box;
             background: rgba(0, 0, 0, 0.15);
             border-top: 3px solid rgba(0,0,0,0.2);
-            padding-bottom: env(safe-area-inset-bottom, 6px); /* Fix for iPhone bottom bar */
+            padding-bottom: max(10px, env(safe-area-inset-bottom)); /* Pushes last row above phone navigation buttons */
         }
 
         .keyboard-row {
             display: flex;
             justify-content: center;
             gap: 4px;
-            height: 45px; /* Fixed row height */
+            flex: 1; /* Divides height equally among the 3 rows */
         }
 
         .key {
