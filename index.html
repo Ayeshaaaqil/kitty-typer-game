@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super Cat Typing Adventure - Power Edition!</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=none">
+    <title>Super Cat Typing Adventure - Mobile!</title>
     <style>
         :root {
             --bg-start: #ff9a9e;
@@ -13,25 +13,31 @@
             --word-bg: #fff2cc;
             --word-border: #ffb142;
             --text-color: #2c3e50;
+            --key-bg: #d1d8e0;
+            --key-text: #2c3e50;
         }
 
         body {
             margin: 0;
+            padding: 0;
             background: linear-gradient(to bottom, var(--bg-start), var(--bg-end));
             font-family: 'Comic Sans MS', cursive, sans-serif;
             overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             height: 100vh;
+            width: 100vw;
             transition: all 0.5s ease;
-            user-select: none;
+            touch-action: manipulation; /* Fixes touch delay */
         }
+
         #game-container {
             position: relative;
-            width: 600px;
-            height: 500px;
+            width: 95%; /* Responsive width */
+            max-width: 600px;
+            height: 70%; /* Leaves room for the keyboard */
+            margin-top: 10px;
             background: var(--box-bg);
             border: 4px solid #4a4a4a;
             border-radius: 20px;
@@ -39,61 +45,103 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.2);
             transition: background 0.5s ease;
         }
+
         #ui-bar {
             display: flex;
             justify-content: space-around;
             background: var(--ui-bg);
-            padding: 10px;
-            font-size: 20px;
+            padding: 8px;
+            font-size: 16px; /* Slightly smaller for mobile */
             font-weight: bold;
-            border-bottom: 4px solid #4a4a4a;
-            transition: background 0.5s ease;
+            border-bottom: 3px solid #4a4a4a;
         }
+
+        #word-area {
+            position: relative;
+            height: calc(100% - 40px); /* Adjust for UI bar */
+            width: 100%;
+        }
+
         .word {
             position: absolute;
-            font-size: 28px;
+            font-size: 24px; /* Responsive font size */
             font-weight: bold;
             color: var(--text-color);
             background: var(--word-bg);
-            padding: 5px 15px;
+            padding: 5px 12px;
             border-radius: 15px;
             border: 2px solid var(--word-border);
             white-space: nowrap;
             box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
-            transition: background 0.3s;
-        }
-        /* Special styles for Power-up words */
-        .power-freeze { background: #74b9ff !important; border-color: #0984e3 !important; color: white !important; animation: pulse 1s infinite alternate; }
-        .power-boom { background: #ff7675 !important; border-color: #d63031 !important; color: white !important; animation: pulse 1s infinite alternate; }
-        .power-heal { background: #55efc4 !important; border-color: #00b894 !important; color: white !important; animation: pulse 1s infinite alternate; }
-        
-        @keyframes pulse {
-            from { transform: scale(1); }
-            to { transform: scale(1.1); }
         }
 
-        .typed-letter {
-            color: #2ed573; /* Correct typed letters turn bright green */
-        }
-        #cat-mascot {
+        .power-freeze { background: #74b9ff !important; border-color: #0984e3 !important; color: white !important; }
+        .power-boom { background: #ff7675 !important; border-color: #d63031 !important; color: white !important; }
+        .power-heal { background: #55efc4 !important; border-color: #00b894 !important; color: white !important; }
+
+        .typed-letter { color: #2ed573; }
+
+        #input-display {
             position: absolute;
-            bottom: 10px;
-            right: 20px;
-            font-size: 70px;
-            transition: transform 0.2s;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+            background: #f1f2f6;
+            padding: 4px 15px;
+            border-radius: 10px;
+            border: 2px dashed #a4b0be;
+            color: #2c3e50;
+            z-index: 5;
         }
-        #cat-bubble {
-            position: absolute;
-            bottom: 90px;
-            right: 20px;
-            background: white;
-            padding: 8px 15px;
-            border-radius: 15px;
-            border: 2px solid #4a4a4a;
+
+        /* ON-SCREEN KEYBOARD STYLE */
+        #keyboard-container {
+            width: 100%;
+            max-width: 600px;
+            height: 25%; /* Fixed height for the keyboard */
+            display: grid;
+            grid-template-rows: repeat(3, 1fr);
+            gap: 5px;
+            padding: 5px;
+            box-sizing: border-box;
+            background: rgba(0,0,0,0.1);
+            border-top: 2px solid rgba(0,0,0,0.2);
+        }
+
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .key {
+            background: var(--key-bg);
+            color: var(--key-text);
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
             font-weight: bold;
-            display: none;
-            z-index: 10;
+            font-family: inherit;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+            -webkit-tap-highlight-color: transparent; /* Fix mobile highlight */
         }
+
+        .key:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 rgba(0,0,0,0.2);
+            background: #b2bec3;
+        }
+
+        /* Specific styles for special keys */
+        .key-backspace { flex-grow: 2; background: #fab1a0; color: white; font-size: 14px; }
+        .key-enter { flex-grow: 2; background: #55efc4; color: white; font-size: 14px; }
+
         #game-over-screen {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -103,39 +151,20 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 30px;
+            font-size: 24px;
             display: none;
             z-index: 20;
         }
-        button {
+
+        button.play-again {
             padding: 10px 20px;
-            font-size: 20px;
+            font-size: 18px;
             font-family: inherit;
             background: #2ecc71;
             color: white;
             border: none;
             border-radius: 10px;
-            cursor: pointer;
-            margin-top: 20px;
             box-shadow: 0 4px #27ae60;
-        }
-        button:active {
-            transform: translateY(4px);
-            box-shadow: none;
-        }
-        #input-display {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 24px;
-            background: #f1f2f6;
-            padding: 5px 20px;
-            border-radius: 10px;
-            min-width: 100px;
-            text-align: center;
-            border: 2px dashed #a4b0be;
-            color: #2c3e50;
         }
     </style>
 </head>
@@ -143,22 +172,56 @@
 
 <div id="game-container">
     <div id="ui-bar">
-        <div>Score: <span id="score">0</span></div>
-        <div>Level: <span id="level">1</span></div>
-        <div>Hearts: <span id="hearts">❤️❤️❤️</span></div>
+        <div>Pts: <span id="score">0</span></div>
+        <div>Lvl: <span id="level">1</span></div>
+        <div>❤️: <span id="hearts">❤️❤️❤️</span></div>
     </div>
     
-    <div id="word-area" style="position: relative; height: 400px;"></div>
-    
-    <div id="input-display">Type!</div>
-    
-    <div id="cat-bubble">Great job! 🐾</div>
-    <div id="cat-mascot">🐱</div>
+    <div id="word-area"></div>
+    <div id="input-display">Tap ABC!</div>
 
     <div id="game-over-screen">
-        <h2>Game Over! 🙀</h2>
-        <p>Final Score: <span id="final-score">0</span></p>
-        <button onclick="startGame()">Play Again</button>
+        <h2>😿 Game Over! 😿</h2>
+        <p>Score: <span id="final-score">0</span></p>
+        <button class="play-again" onclick="startGame()">Play Again</button>
+    </div>
+</div>
+
+<!-- ON-SCREEN VIRTUAL KEYBOARD -->
+<div id="keyboard-container">
+    <div class="keyboard-row">
+        <button class="key" onclick="handleKeyInput('q')">Q</button>
+        <button class="key" onclick="handleKeyInput('w')">W</button>
+        <button class="key" onclick="handleKeyInput('e')">E</button>
+        <button class="key" onclick="handleKeyInput('r')">R</button>
+        <button class="key" onclick="handleKeyInput('t')">T</button>
+        <button class="key" onclick="handleKeyInput('y')">Y</button>
+        <button class="key" onclick="handleKeyInput('u')">U</button>
+        <button class="key" onclick="handleKeyInput('i')">I</button>
+        <button class="key" onclick="handleKeyInput('o')">O</button>
+        <button class="key" onclick="handleKeyInput('p')">P</button>
+    </div>
+    <div class="keyboard-row">
+        <button class="key" onclick="handleKeyInput('a')">A</button>
+        <button class="key" onclick="handleKeyInput('s')">S</button>
+        <button class="key" onclick="handleKeyInput('d')">D</button>
+        <button class="key" onclick="handleKeyInput('f')">F</button>
+        <button class="key" onclick="handleKeyInput('g')">G</button>
+        <button class="key" onclick="handleKeyInput('h')">H</button>
+        <button class="key" onclick="handleKeyInput('j')">J</button>
+        <button class="key" onclick="handleKeyInput('k')">K</button>
+        <button class="key" onclick="handleKeyInput('l')">L</button>
+    </div>
+    <div class="keyboard-row">
+        <button class="key key-backspace" onclick="handleKeyInput('Backspace')">⌫ Del</button>
+        <button class="key" onclick="handleKeyInput('z')">Z</button>
+        <button class="key" onclick="handleKeyInput('x')">X</button>
+        <button class="key" onclick="handleKeyInput('c')">C</button>
+        <button class="key" onclick="handleKeyInput('v')">V</button>
+        <button class="key" onclick="handleKeyInput('b')">B</button>
+        <button class="key" onclick="handleKeyInput('n')">N</button>
+        <button class="key" onclick="handleKeyInput('m')">M</button>
+        <button class="key key-enter" onclick="handleKeyInput('Enter')">⏎</button>
     </div>
 </div>
 
@@ -166,38 +229,27 @@
     const wordList = ["cat", "dog", "sun", "map", "run", "hop", "red", "blue", "tree", "fish", "frog", "jump", "cake", "star", "ball", "book", "milk", "lion", "duck", "kite", "pink", "baby", "toy", "happy"];
     const powerUps = ["freeze", "boom", "heal"];
     
-    let score = 0;
-    let level = 1;
-    let lives = 3;
-    let speed = 1.2; 
-    let activeWords = [];
-    let currentInput = "";
-    let gameInterval;
-    let spawnInterval;
-    let isFrozen = false;
+    let score = 0, level = 1, lives = 3, speed = 1.2, activeWords = [], currentInput = "", gameInterval, spawnInterval, isFrozen = false;
 
-    // Web Audio API for Retro Sound Effects
+    // Web Audio API
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playTone(freq, type, duration) {
         try {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.type = type;
-            osc.frequency.value = freq;
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            osc.type = type; osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + duration);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + duration);
         } catch(e) {}
     }
 
     const themes = {
-        1: { start: '#ff9a9e', end: '#fecfef', ui: '#ffeaa7', word: '#fff2cc', border: '#ffb142' }, // Pink Candy
-        2: { start: '#11998e', end: '#38ef7d', ui: '#c8d6e5', word: '#e3f2fd', border: '#2196f3' }, // Jungle Green
-        3: { start: '#6c5ce7', end: '#a29bfe', ui: '#dfe6e9', word: '#ffeaa7', border: '#fdcb6e' }, // Magic Purple
-        4: { start: '#141e30', end: '#243b55', ui: '#57606f', word: '#f1f2f6', border: '#747d8c' }  // Space Mode
+        1: { start: '#ff9a9e', end: '#fecfef', ui: '#ffeaa7', word: '#fff2cc', border: '#ffb142' },
+        2: { start: '#11998e', end: '#38ef7d', ui: '#c8d6e5', word: '#e3f2fd', border: '#2196f3' },
+        3: { start: '#6c5ce7', end: '#a29bfe', ui: '#dfe6e9', word: '#ffeaa7', border: '#fdcb6e' },
+        4: { start: '#141e30', end: '#243b55', ui: '#57606f', word: '#f1f2f6', border: '#747d8c' }
     };
 
     function changeTheme(lvl) {
@@ -211,40 +263,29 @@
 
     function startGame() {
         score = 0; level = 1; lives = 3; speed = 1.2; isFrozen = false;
-        activeWords.forEach(w => w.element.remove());
-        activeWords = [];
-        currentInput = "";
-        document.getElementById('input-display').innerText = "Type!";
+        activeWords.forEach(w => w.element.remove()); activeWords = [];
+        currentInput = ""; document.getElementById('input-display').innerText = "Tap ABC!";
         document.getElementById('game-over-screen').style.display = 'none';
-        changeTheme(1);
-        updateUI();
-
-        clearInterval(gameInterval);
-        clearInterval(spawnInterval);
+        changeTheme(1); updateUI();
+        clearInterval(gameInterval); clearInterval(spawnInterval);
         gameInterval = setInterval(updateGame, 1000 / 60);
-        spawnInterval = setInterval(spawnWord, 2400);
+        spawnInterval = setInterval(spawnWord, 2600); // Slightly slower spawn for touch
         spawnWord();
     }
 
     function spawnWord() {
         if (lives <= 0) return;
-        
-        // 15% chance to spawn a Power-Up word instead of a normal word
-        let isPower = Math.random() < 0.15;
-        let text = "";
-        let typeClass = "";
-
-        if (isPower) {
-            text = powerUps[Math.floor(Math.random() * powerUps.length)];
-            typeClass = " power-" + text;
-        } else {
-            text = wordList[Math.floor(Math.random() * wordList.length)];
-        }
+        let isPower = Math.random() < 0.18; // 18% powerup chance
+        let text = isPower ? powerUps[Math.floor(Math.random() * powerUps.length)] : wordList[Math.floor(Math.random() * wordList.length)];
+        let typeClass = isPower ? " power-" + text : "";
 
         const element = document.createElement('div');
         element.className = 'word' + typeClass;
         element.innerHTML = text; 
-        element.style.left = Math.random() * (500 - 90) + 'px'; 
+        
+        // Responsive positioning within #game-container boundaries
+        const containerWidth = document.getElementById('game-container').offsetWidth;
+        element.style.left = Math.random() * (containerWidth - 100) + 10 + 'px'; 
         element.style.top = '0px';
         document.getElementById('word-area').appendChild(element);
 
@@ -252,53 +293,57 @@
     }
 
     function updateGame() {
-        // If frozen power-up is active, words don't move down
         let currentSpeed = isFrozen ? 0 : speed;
+        // Game boundary adjustment for responsive height
+        const gameHeight = document.getElementById('game-container').offsetHeight;
+        const bottomBoundary = gameHeight - 70; // Adjust based on input display and UI
 
         for (let i = activeWords.length - 1; i >= 0; i--) {
             let word = activeWords[i];
             word.y += currentSpeed;
             word.element.style.top = word.y + 'px';
 
-            if (word.y > 330) {
+            if (word.y > bottomBoundary) {
                 word.element.remove();
                 activeWords.splice(i, 1);
-                
-                // Powerups hitting the floor don't hurt hearts
                 if (!word.isPower) {
                     lives--;
-                    playTone(150, 'sawtooth', 0.3); 
-                    catCelebrate("Ouch! 😿");
-                    updateUI();
+                    playTone(150, 'sawtooth', 0.3); updateUI();
                     if (lives <= 0) endGame();
                 }
             }
         }
     }
 
-    window.addEventListener('keydown', (e) => {
+    // MAIN INPUT HANDLER (for physical keyboard AND touch screen buttons)
+    function handleKeyInput(key) {
         if (lives <= 0) return;
-        
-        if (e.key === 'Backspace') {
+
+        // Visual feedback for touch/click
+        playTone(600, 'sine', 0.03); 
+
+        if (key === 'Backspace' || key === 'Delete') {
             currentInput = currentInput.slice(0, -1);
-        } else if (e.key.length === 1 && e.key.match(/[a-z]/i)) {
-            currentInput += e.key.toLowerCase();
-            playTone(600, 'sine', 0.04); 
+        } else if (key === 'Enter' || key === ' ') {
+            currentInput = ""; // Simple clear on enter
+        } else if (key.length === 1 && key.match(/[a-z]/i)) {
+            currentInput += key.toLowerCase();
         }
         
-        document.getElementById('input-display').innerText = currentInput || "Type!";
+        document.getElementById('input-display').innerText = currentInput || "Tap ABC!";
         highlightWords();
         checkWordMatch();
-    });
+    }
+
+    // Capture standard physical keyboard for desktops
+    window.addEventListener('keydown', (e) => handleKeyInput(e.key));
 
     function highlightWords() {
         activeWords.forEach(word => {
             if (word.text.startsWith(currentInput) && currentInput !== "") {
                 let highlighted = `<span class="typed-letter">${word.text.substring(0, currentInput.length)}</span>${word.text.substring(currentInput.length)}`;
                 word.element.innerHTML = highlighted;
-            } else {
-                word.element.innerHTML = word.text;
-            }
+            } else { word.element.innerHTML = word.text; }
         });
     }
 
@@ -308,25 +353,17 @@
             let matchedWord = activeWords[index];
             matchedWord.element.remove();
             activeWords.splice(index, 1);
-            score += 10;
-            currentInput = "";
-            document.getElementById('input-display').innerText = "Type!";
+            score += 10; currentInput = "";
+            document.getElementById('input-display').innerText = "Nice!";
             
-            if (matchedWord.isPower) {
-                applyPowerUp(matchedWord.text);
-            } else {
-                playTone(880, 'sine', 0.08); 
-                catCelebrate();
-            }
+            if (matchedWord.isPower) { applyPowerUp(matchedWord.text); } 
+            else { playTone(880, 'sine', 0.08); }
 
-            // Level Up Check (Every 60 points)
-            let newLevel = Math.floor(score / 60) + 1;
+            // Level Up Check
+            let newLevel = Math.floor(score / 70) + 1; // Level up slower
             if (newLevel > level) {
-                level = newLevel;
-                speed += 0.35;
-                changeTheme(level);
+                level = newLevel; speed += 0.3; changeTheme(level);
                 playTone(1100, 'triangle', 0.4); 
-                catCelebrate("LEVEL UP! 🚀😸");
             }
             updateUI();
         }
@@ -334,37 +371,14 @@
 
     function applyPowerUp(type) {
         if (type === 'freeze') {
-            isFrozen = true;
-            playTone(400, 'triangle', 0.5);
-            catCelebrate("BRRR! Ice Power! ❄️🐱");
-            document.getElementById('game-container').style.background = "#e3f2fd";
-            setTimeout(() => {
-                isFrozen = false;
-                document.getElementById('game-container').style.background = "var(--box-bg)";
-            }, 4000); // Freeze for 4 seconds
-        } 
-        else if (type === 'boom') {
+            isFrozen = true; playTone(400, 'triangle', 0.5);
+            setTimeout(() => isFrozen = false, 4000); // 4s freeze
+        } else if (type === 'boom') {
             playTone(200, 'square', 0.4);
-            catCelebrate("BOOM! Kaboom! 💥");
-            activeWords.forEach(w => w.element.remove());
-            activeWords = [];
-        } 
-        else if (type === 'heal') {
-            playTone(950, 'sine', 0.3);
-            if (lives < 3) lives++;
-            catCelebrate("Yum! Heart +1 ❤️");
+            activeWords.forEach(w => w.element.remove()); activeWords = [];
+        } else if (type === 'heal') {
+            playTone(950, 'sine', 0.3); if (lives < 3) lives++;
         }
-    }
-
-    function catCelebrate(msg) {
-        const cat = document.getElementById('cat-mascot');
-        const bubble = document.getElementById('cat-bubble');
-        cat.style.transform = "scale(1.3) rotate(-10deg)";
-        bubble.innerText = msg || ["Yay! 🐾", "Super! ✨", "Purr-fect! 💖", "Nice! 🎯"][Math.floor(Math.random() * 4)];
-        bubble.style.display = "block";
-        
-        setTimeout(() => cat.style.transform = "scale(1)", 250);
-        setTimeout(() => { if(bubble.innerText === msg || !msg) bubble.style.display = "none"; }, 1600);
     }
 
     function updateUI() {
@@ -374,8 +388,7 @@
     }
 
     function endGame() {
-        clearInterval(gameInterval);
-        clearInterval(spawnInterval);
+        clearInterval(gameInterval); clearInterval(spawnInterval);
         playTone(120, 'sawtooth', 0.6);
         document.getElementById('final-score').innerText = score;
         document.getElementById('game-over-screen').style.display = 'flex';
