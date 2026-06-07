@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Cat Typing Adventure - Power Edition!</title>
+    <style>
+        :root {
+            --bg-start: #ff9a9e;
+            --bg-end: #fecfef;
+            --box-bg: #ffffff;
+            --ui-bg: #ffeaa7;
+            --word-bg: #fff2cc;
+            --word-border: #ffb142;
+            --text-color: #2c3e50;
+        }
+
+        body {
+            margin: 0;
+            background: linear-gradient(to bottom, var(--bg-start), var(--bg-end));
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            transition: all 0.5s ease;
+            user-select: none;
+        }
+        #game-container {
+            position: relative;
+            width: 600px;
+            height: 500px;
+            background: var(--box-bg);
+            border: 4px solid #4a4a4a;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            transition: background 0.5s ease;
+        }
+        #ui-bar {
+            display: flex;
+            justify-content: space-around;
+            background: var(--ui-bg);
+            padding: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            border-bottom: 4px solid #4a4a4a;
+            transition: background 0.5s ease;
+        }
+        .word {
+            position: absolute;
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--text-color);
+            background: var(--word-bg);
+            padding: 5px 15px;
+            border-radius: 15px;
+            border: 2px solid var(--word-border);
+            white-space: nowrap;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+            transition: background 0.3s;
+        }
+        /* Special styles for Power-up words */
+        .power-freeze { background: #74b9ff !important; border-color: #0984e3 !important; color: white !important; animation: pulse 1s infinite alternate; }
+        .power-boom { background: #ff7675 !important; border-color: #d63031 !important; color: white !important; animation: pulse 1s infinite alternate; }
+        .power-heal { background: #55efc4 !important; border-color: #00b894 !important; color: white !important; animation: pulse 1s infinite alternate; }
+        
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+
+        .typed-letter {
+            color: #2ed573; /* Correct typed letters turn bright green */
+        }
+        #cat-mascot {
+            position: absolute;
+            bottom: 10px;
+            right: 20px;
+            font-size: 70px;
+            transition: transform 0.2s;
+        }
+        #cat-bubble {
+            position: absolute;
+            bottom: 90px;
+            right: 20px;
+            background: white;
+            padding: 8px 15px;
+            border-radius: 15px;
+            border: 2px solid #4a4a4a;
+            font-weight: bold;
+            display: none;
+            z-index: 10;
+        }
+        #game-over-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            display: none;
+            z-index: 20;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 20px;
+            font-family: inherit;
+            background: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 4px #27ae60;
+        }
+        button:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+        #input-display {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            background: #f1f2f6;
+            padding: 5px 20px;
+            border-radius: 10px;
+            min-width: 100px;
+            text-align: center;
+            border: 2px dashed #a4b0be;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="ui-bar">
+        <div>Score: <span id="score">0</span></div>
+        <div>Level: <span id="level">1</span></div>
+        <div>Hearts: <span id="hearts">❤️❤️❤️</span></div>
+    </div>
+    
+    <div id="word-area" style="position: relative; height: 400px;"></div>
+    
+    <div id="input-display">Type!</div>
+    
+    <div id="cat-bubble">Great job! 🐾</div>
+    <div id="cat-mascot">🐱</div>
+
+    <div id="game-over-screen">
+        <h2>Game Over! 🙀</h2>
+        <p>Final Score: <span id="final-score">0</span></p>
+        <button onclick="startGame()">Play Again</button>
+    </div>
+</div>
+
+<script>
+    const wordList = ["cat", "dog", "sun", "map", "run", "hop", "red", "blue", "tree", "fish", "frog", "jump", "cake", "star", "ball", "book", "milk", "lion", "duck", "kite", "pink", "baby", "toy", "happy"];
+    const powerUps = ["freeze", "boom", "heal"];
+    
+    let score = 0;
+    let level = 1;
+    let lives = 3;
+    let speed = 1.2; 
+    let activeWords = [];
+    let currentInput = "";
+    let gameInterval;
+    let spawnInterval;
+    let isFrozen = false;
+
+    // Web Audio API for Retro Sound Effects
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playTone(freq, type, duration) {
+        try {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        } catch(e) {}
+    }
+
+    const themes = {
+        1: { start: '#ff9a9e', end: '#fecfef', ui: '#ffeaa7', word: '#fff2cc', border: '#ffb142' }, // Pink Candy
+        2: { start: '#11998e', end: '#38ef7d', ui: '#c8d6e5', word: '#e3f2fd', border: '#2196f3' }, // Jungle Green
+        3: { start: '#6c5ce7', end: '#a29bfe', ui: '#dfe6e9', word: '#ffeaa7', border: '#fdcb6e' }, // Magic Purple
+        4: { start: '#141e30', end: '#243b55', ui: '#57606f', word: '#f1f2f6', border: '#747d8c' }  // Space Mode
+    };
+
+    function changeTheme(lvl) {
+        const t = themes[lvl] || themes[4]; 
+        document.documentElement.style.setProperty('--bg-start', t.start);
+        document.documentElement.style.setProperty('--bg-end', t.end);
+        document.documentElement.style.setProperty('--ui-bg', t.ui);
+        document.documentElement.style.setProperty('--word-bg', t.word);
+        document.documentElement.style.setProperty('--word-border', t.border);
+    }
+
+    function startGame() {
+        score = 0; level = 1; lives = 3; speed = 1.2; isFrozen = false;
+        activeWords.forEach(w => w.element.remove());
+        activeWords = [];
+        currentInput = "";
+        document.getElementById('input-display').innerText = "Type!";
+        document.getElementById('game-over-screen').style.display = 'none';
+        changeTheme(1);
+        updateUI();
+
+        clearInterval(gameInterval);
+        clearInterval(spawnInterval);
+        gameInterval = setInterval(updateGame, 1000 / 60);
+        spawnInterval = setInterval(spawnWord, 2400);
+        spawnWord();
+    }
+
+    function spawnWord() {
+        if (lives <= 0) return;
+        
+        // 15% chance to spawn a Power-Up word instead of a normal word
+        let isPower = Math.random() < 0.15;
+        let text = "";
+        let typeClass = "";
+
+        if (isPower) {
+            text = powerUps[Math.floor(Math.random() * powerUps.length)];
+            typeClass = " power-" + text;
+        } else {
+            text = wordList[Math.floor(Math.random() * wordList.length)];
+        }
+
+        const element = document.createElement('div');
+        element.className = 'word' + typeClass;
+        element.innerHTML = text; 
+        element.style.left = Math.random() * (500 - 90) + 'px'; 
+        element.style.top = '0px';
+        document.getElementById('word-area').appendChild(element);
+
+        activeWords.push({ text: text, y: 0, element: element, isPower: isPower });
+    }
+
+    function updateGame() {
+        // If frozen power-up is active, words don't move down
+        let currentSpeed = isFrozen ? 0 : speed;
+
+        for (let i = activeWords.length - 1; i >= 0; i--) {
+            let word = activeWords[i];
+            word.y += currentSpeed;
+            word.element.style.top = word.y + 'px';
+
+            if (word.y > 330) {
+                word.element.remove();
+                activeWords.splice(i, 1);
+                
+                // Powerups hitting the floor don't hurt hearts
+                if (!word.isPower) {
+                    lives--;
+                    playTone(150, 'sawtooth', 0.3); 
+                    catCelebrate("Ouch! 😿");
+                    updateUI();
+                    if (lives <= 0) endGame();
+                }
+            }
+        }
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if (lives <= 0) return;
+        
+        if (e.key === 'Backspace') {
+            currentInput = currentInput.slice(0, -1);
+        } else if (e.key.length === 1 && e.key.match(/[a-z]/i)) {
+            currentInput += e.key.toLowerCase();
+            playTone(600, 'sine', 0.04); 
+        }
+        
+        document.getElementById('input-display').innerText = currentInput || "Type!";
+        highlightWords();
+        checkWordMatch();
+    });
+
+    function highlightWords() {
+        activeWords.forEach(word => {
+            if (word.text.startsWith(currentInput) && currentInput !== "") {
+                let highlighted = `<span class="typed-letter">${word.text.substring(0, currentInput.length)}</span>${word.text.substring(currentInput.length)}`;
+                word.element.innerHTML = highlighted;
+            } else {
+                word.element.innerHTML = word.text;
+            }
+        });
+    }
+
+    function checkWordMatch() {
+        const index = activeWords.findIndex(w => w.text === currentInput);
+        if (index !== -1) {
+            let matchedWord = activeWords[index];
+            matchedWord.element.remove();
+            activeWords.splice(index, 1);
+            score += 10;
+            currentInput = "";
+            document.getElementById('input-display').innerText = "Type!";
+            
+            if (matchedWord.isPower) {
+                applyPowerUp(matchedWord.text);
+            } else {
+                playTone(880, 'sine', 0.08); 
+                catCelebrate();
+            }
+
+            // Level Up Check (Every 60 points)
+            let newLevel = Math.floor(score / 60) + 1;
+            if (newLevel > level) {
+                level = newLevel;
+                speed += 0.35;
+                changeTheme(level);
+                playTone(1100, 'triangle', 0.4); 
+                catCelebrate("LEVEL UP! 🚀😸");
+            }
+            updateUI();
+        }
+    }
+
+    function applyPowerUp(type) {
+        if (type === 'freeze') {
+            isFrozen = true;
+            playTone(400, 'triangle', 0.5);
+            catCelebrate("BRRR! Ice Power! ❄️🐱");
+            document.getElementById('game-container').style.background = "#e3f2fd";
+            setTimeout(() => {
+                isFrozen = false;
+                document.getElementById('game-container').style.background = "var(--box-bg)";
+            }, 4000); // Freeze for 4 seconds
+        } 
+        else if (type === 'boom') {
+            playTone(200, 'square', 0.4);
+            catCelebrate("BOOM! Kaboom! 💥");
+            activeWords.forEach(w => w.element.remove());
+            activeWords = [];
+        } 
+        else if (type === 'heal') {
+            playTone(950, 'sine', 0.3);
+            if (lives < 3) lives++;
+            catCelebrate("Yum! Heart +1 ❤️");
+        }
+    }
+
+    function catCelebrate(msg) {
+        const cat = document.getElementById('cat-mascot');
+        const bubble = document.getElementById('cat-bubble');
+        cat.style.transform = "scale(1.3) rotate(-10deg)";
+        bubble.innerText = msg || ["Yay! 🐾", "Super! ✨", "Purr-fect! 💖", "Nice! 🎯"][Math.floor(Math.random() * 4)];
+        bubble.style.display = "block";
+        
+        setTimeout(() => cat.style.transform = "scale(1)", 250);
+        setTimeout(() => { if(bubble.innerText === msg || !msg) bubble.style.display = "none"; }, 1600);
+    }
+
+    function updateUI() {
+        document.getElementById('score').innerText = score;
+        document.getElementById('level').innerText = level;
+        document.getElementById('hearts').innerText = "❤️".repeat(Math.max(0, lives)) || "💔";
+    }
+
+    function endGame() {
+        clearInterval(gameInterval);
+        clearInterval(spawnInterval);
+        playTone(120, 'sawtooth', 0.6);
+        document.getElementById('final-score').innerText = score;
+        document.getElementById('game-over-screen').style.display = 'flex';
+    }
+
+    startGame();
+</script>
+</body>
+</html>
