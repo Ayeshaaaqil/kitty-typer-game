@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=none">
-    <title>Super Cat Typing Adventure - Mobile!</title>
+    <title>Super Cat Typing Adventure - Perfect Mobile Fit!</title>
     <style>
         :root {
             --bg-start: #ff9a9e;
@@ -28,51 +28,52 @@
             align-items: center;
             height: 100vh;
             width: 100vw;
-            transition: all 0.5s ease;
-            touch-action: manipulation; /* Fixes touch delay */
+            box-sizing: border-box;
+            touch-action: manipulation;
         }
 
         #game-container {
             position: relative;
-            width: 95%; /* Responsive width */
-            max-width: 600px;
-            height: 70%; /* Leaves room for the keyboard */
-            margin-top: 10px;
+            width: 95%;
+            max-width: 500px;
+            /* Flex grow allows it to take up all available top space dynamically */
+            flex-grow: 1; 
+            margin-top: 5px;
+            margin-bottom: 5px;
             background: var(--box-bg);
-            border: 4px solid #4a4a4a;
+            border: 3px solid #4a4a4a;
             border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            transition: background 0.5s ease;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
         }
 
         #ui-bar {
             display: flex;
             justify-content: space-around;
             background: var(--ui-bg);
-            padding: 8px;
-            font-size: 16px; /* Slightly smaller for mobile */
+            padding: 6px;
+            font-size: 15px;
             font-weight: bold;
             border-bottom: 3px solid #4a4a4a;
         }
 
         #word-area {
             position: relative;
-            height: calc(100% - 40px); /* Adjust for UI bar */
+            height: calc(100% - 35px);
             width: 100%;
         }
 
         .word {
             position: absolute;
-            font-size: 24px; /* Responsive font size */
+            font-size: 22px;
             font-weight: bold;
             color: var(--text-color);
             background: var(--word-bg);
-            padding: 5px 12px;
-            border-radius: 15px;
+            padding: 4px 10px;
+            border-radius: 12px;
             border: 2px solid var(--word-border);
             white-space: nowrap;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
 
         .power-freeze { background: #74b9ff !important; border-color: #0984e3 !important; color: white !important; }
@@ -83,64 +84,65 @@
 
         #input-display {
             position: absolute;
-            bottom: 15px;
+            bottom: 10px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 20px;
+            font-size: 18px;
             background: #f1f2f6;
-            padding: 4px 15px;
-            border-radius: 10px;
+            padding: 3px 12px;
+            border-radius: 8px;
             border: 2px dashed #a4b0be;
             color: #2c3e50;
             z-index: 5;
         }
 
-        /* ON-SCREEN KEYBOARD STYLE */
+        /* NEW COMPACT KEYBOARD HEIGHT */
         #keyboard-container {
             width: 100%;
-            max-width: 600px;
-            height: 25%; /* Fixed height for the keyboard */
-            display: grid;
-            grid-template-rows: repeat(3, 1fr);
-            gap: 5px;
-            padding: 5px;
+            max-width: 500px;
+            height: 160px; /* Fixed height ensures it never gets cut off */
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 6px;
             box-sizing: border-box;
-            background: rgba(0,0,0,0.1);
-            border-top: 2px solid rgba(0,0,0,0.2);
+            background: rgba(0, 0, 0, 0.15);
+            border-top: 3px solid rgba(0,0,0,0.2);
+            padding-bottom: env(safe-area-inset-bottom, 6px); /* Fix for iPhone bottom bar */
         }
 
         .keyboard-row {
             display: flex;
             justify-content: center;
-            gap: 5px;
+            gap: 4px;
+            height: 45px; /* Fixed row height */
         }
 
         .key {
             background: var(--key-bg);
             color: var(--key-text);
             border: none;
-            border-radius: 8px;
-            font-size: 18px;
+            border-radius: 6px;
+            font-size: 16px;
             font-weight: bold;
             font-family: inherit;
-            flex-grow: 1;
+            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
-            -webkit-tap-highlight-color: transparent; /* Fix mobile highlight */
+            box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+            -webkit-tap-highlight-color: transparent;
         }
 
         .key:active {
-            transform: translateY(2px);
+            transform: translateY(1px);
             box-shadow: 0 1px 0 rgba(0,0,0,0.2);
             background: #b2bec3;
         }
 
-        /* Specific styles for special keys */
-        .key-backspace { flex-grow: 2; background: #fab1a0; color: white; font-size: 14px; }
-        .key-enter { flex-grow: 2; background: #55efc4; color: white; font-size: 14px; }
+        .key-backspace { flex: 1.5; background: #fab1a0; color: white; font-size: 13px; }
+        .key-enter { flex: 1.5; background: #55efc4; color: white; font-size: 13px; }
 
         #game-over-screen {
             position: absolute;
@@ -151,20 +153,20 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 22px;
             display: none;
             z-index: 20;
         }
 
         button.play-again {
-            padding: 10px 20px;
-            font-size: 18px;
+            padding: 8px 16px;
+            font-size: 16px;
             font-family: inherit;
             background: #2ecc71;
             color: white;
             border: none;
-            border-radius: 10px;
-            box-shadow: 0 4px #27ae60;
+            border-radius: 8px;
+            box-shadow: 0 3px #27ae60;
         }
     </style>
 </head>
@@ -181,13 +183,12 @@
     <div id="input-display">Tap ABC!</div>
 
     <div id="game-over-screen">
-        <h2>😿 Game Over! 😿</h2>
+        <h2>Game Over! 🙀</h2>
         <p>Score: <span id="final-score">0</span></p>
         <button class="play-again" onclick="startGame()">Play Again</button>
     </div>
 </div>
 
-<!-- ON-SCREEN VIRTUAL KEYBOARD -->
 <div id="keyboard-container">
     <div class="keyboard-row">
         <button class="key" onclick="handleKeyInput('q')">Q</button>
@@ -213,7 +214,7 @@
         <button class="key" onclick="handleKeyInput('l')">L</button>
     </div>
     <div class="keyboard-row">
-        <button class="key key-backspace" onclick="handleKeyInput('Backspace')">⌫ Del</button>
+        <button class="key key-backspace" onclick="handleKeyInput('Backspace')">⌫</button>
         <button class="key" onclick="handleKeyInput('z')">Z</button>
         <button class="key" onclick="handleKeyInput('x')">X</button>
         <button class="key" onclick="handleKeyInput('c')">C</button>
@@ -238,7 +239,7 @@
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = type; osc.frequency.value = freq;
-            gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
             osc.connect(gain); gain.connect(audioCtx.destination);
             osc.start(); osc.stop(audioCtx.currentTime + duration);
@@ -269,13 +270,13 @@
         changeTheme(1); updateUI();
         clearInterval(gameInterval); clearInterval(spawnInterval);
         gameInterval = setInterval(updateGame, 1000 / 60);
-        spawnInterval = setInterval(spawnWord, 2600); // Slightly slower spawn for touch
+        spawnInterval = setInterval(spawnWord, 2600);
         spawnWord();
     }
 
     function spawnWord() {
         if (lives <= 0) return;
-        let isPower = Math.random() < 0.18; // 18% powerup chance
+        let isPower = Math.random() < 0.18;
         let text = isPower ? powerUps[Math.floor(Math.random() * powerUps.length)] : wordList[Math.floor(Math.random() * wordList.length)];
         let typeClass = isPower ? " power-" + text : "";
 
@@ -283,9 +284,8 @@
         element.className = 'word' + typeClass;
         element.innerHTML = text; 
         
-        // Responsive positioning within #game-container boundaries
         const containerWidth = document.getElementById('game-container').offsetWidth;
-        element.style.left = Math.random() * (containerWidth - 100) + 10 + 'px'; 
+        element.style.left = Math.random() * (containerWidth - 90) + 5 + 'px'; 
         element.style.top = '0px';
         document.getElementById('word-area').appendChild(element);
 
@@ -294,9 +294,8 @@
 
     function updateGame() {
         let currentSpeed = isFrozen ? 0 : speed;
-        // Game boundary adjustment for responsive height
         const gameHeight = document.getElementById('game-container').offsetHeight;
-        const bottomBoundary = gameHeight - 70; // Adjust based on input display and UI
+        const bottomBoundary = gameHeight - 55;
 
         for (let i = activeWords.length - 1; i >= 0; i--) {
             let word = activeWords[i];
@@ -315,17 +314,14 @@
         }
     }
 
-    // MAIN INPUT HANDLER (for physical keyboard AND touch screen buttons)
     function handleKeyInput(key) {
         if (lives <= 0) return;
-
-        // Visual feedback for touch/click
         playTone(600, 'sine', 0.03); 
 
         if (key === 'Backspace' || key === 'Delete') {
             currentInput = currentInput.slice(0, -1);
         } else if (key === 'Enter' || key === ' ') {
-            currentInput = ""; // Simple clear on enter
+            currentInput = ""; 
         } else if (key.length === 1 && key.match(/[a-z]/i)) {
             currentInput += key.toLowerCase();
         }
@@ -335,7 +331,6 @@
         checkWordMatch();
     }
 
-    // Capture standard physical keyboard for desktops
     window.addEventListener('keydown', (e) => handleKeyInput(e.key));
 
     function highlightWords() {
@@ -359,8 +354,7 @@
             if (matchedWord.isPower) { applyPowerUp(matchedWord.text); } 
             else { playTone(880, 'sine', 0.08); }
 
-            // Level Up Check
-            let newLevel = Math.floor(score / 70) + 1; // Level up slower
+            let newLevel = Math.floor(score / 70) + 1;
             if (newLevel > level) {
                 level = newLevel; speed += 0.3; changeTheme(level);
                 playTone(1100, 'triangle', 0.4); 
@@ -372,7 +366,7 @@
     function applyPowerUp(type) {
         if (type === 'freeze') {
             isFrozen = true; playTone(400, 'triangle', 0.5);
-            setTimeout(() => isFrozen = false, 4000); // 4s freeze
+            setTimeout(() => isFrozen = false, 4000);
         } else if (type === 'boom') {
             playTone(200, 'square', 0.4);
             activeWords.forEach(w => w.element.remove()); activeWords = [];
